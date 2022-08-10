@@ -233,9 +233,12 @@ void do_temperature_measurement_task() {
 //             TASKS led-a
 //****************************************
 void do_led_animation_task() {
-  bool_led_blink = !bool_led_blink;     //used for the blining animation
-  digitalWrite(PIN_EMPTY_LED, (rain_water_volume_percent < LEVEL_10_PERCENT));
-  digitalWrite(PIN_EMPTY_LED, (((rain_water_volume_percent >= LEVEL_10_PERCENT) && (rain_water_volume_percent < LEVEL_25_PERCENT) && (bool_led_blink))));  
+  bool_led_blink = !bool_led_blink;     //used for the blinking animation
+  if (rain_water_volume_percent < LEVEL_10_PERCENT) {
+    digitalWrite(PIN_EMPTY_LED, HIGH);
+  } else {
+    digitalWrite(PIN_EMPTY_LED, (((rain_water_volume_percent >= LEVEL_10_PERCENT) && (rain_water_volume_percent < LEVEL_25_PERCENT) && (bool_led_blink))));   
+  }
   digitalWrite(PIN_25_LED, (rain_water_volume_percent >= LEVEL_25_PERCENT));
   digitalWrite(PIN_50_LED, (rain_water_volume_percent >= LEVEL_50_PERCENT));
   digitalWrite(PIN_75_LED, (rain_water_volume_percent >= LEVEL_75_PERCENT));
@@ -312,10 +315,13 @@ void fault_led_off() {
 //function to calculate the percent volume in the rain water tank
 word calculate_volume_percent(word sensor_h_mm, word distance_h_mm, word mud_h_mm, word outflow_h_mm) {
   //todo checks
+  if ((distance_h_mm + mud_h_mm) > sensor_h_mm) { //if waterlevel is below mudlevel = 0% (limit, otherwise negative value)
+    return 0; //%
+  }
   return ((sensor_h_mm - distance_h_mm) - mud_h_mm) / (outflow_h_mm / 100);
 }
 
-//function to calculate the everage measured depth
+//function to calculate the average measured depth
 word calculate_average_ultrasonic_depth(word last_sample) {
   word average = 0;  
   for (uint8_t i = (ULTRASONIC_DEPTH_SAMPLES - 1) ; i > 0; i--) {
